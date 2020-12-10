@@ -11,163 +11,6 @@ import (
 	"sshmkr/commands"
 )
 
-//// Program Functions
-
-// Adds a new host config to a config file
-// Returns the new config file contents
-func addTemplatedConfig(mainHeader string, subHeader string, templateString string, fileContents []byte) string {
-	/*
-	*	The logic behind this is that we are adding in new config based on a passed template.
-	* 	The user will pass in three flags  (two being config headers) and the name of the template used.
-	*	The user will be prompted to enter in new values into the hostname (or can hit enter to use the )
-	*	default). Once done, the new config will be put into the config file.
-	*
-	*/
-	
-	foundHeader := false
-	foundSubHeader := false
-	fileContentsArray := strings.Split(string(fileContents), "\n")
-	
-	for currIndex, currLine := range fileContentsArray {
-		if (currLine == mainHeader) {
-			foundHeader = true
-		} else if (foundHeader == true && currLine == subHeader) {
-			foundSubHeader = true
-		}
-
-		if foundHeader == true && foundSubHeader == true {
-			if strings.Contains(currLine, sshmkr_reader.SUB_HEADER_IND) {
-				// This means the previous line is the line that we are interested in replacing
-				fileContentsArray[currIndex-1] = templateString
-				break
-			} else if currIndex + 1 >= len(fileContentsArray) {
-				// We reached the end of the file, so we just place the new contents here
-				fileContentsArray[currIndex] = templateString
-				break
-			}
-		} 
-	}
-
-	newContents := strings.Join(fileContentsArray, "\n")
-	return newContents
-}
-
-// Removes a specified host config from the ssh_config value
-// And returns the updated file content
-func removeHostConfig(hostname string, fileContents []byte) string {
-	if len(hostname) <= 0 {
-		fmt.Println("Source flag is empty! Please pass in a valid hostname to remove!")
-		os.Exit(-1)
-	}
-	
-	foundHost := false		// Has the method found the matching hostname
-	finishDelete := false	// Has the method finished parsing out the specified hostname's config
-	newFileIndex := 0		// The current array index that the new byte array is currently on
-	numbLinesRemoved := 0	// How many lines will be omitted from the new file array
-
-	hostSearch := fmt.Sprintf("Host %s", hostname)
-
-	// In order to effectively delete a specific spot in the file
-	// We take the original file contents and make a copy of it to another array
-	// without copying over the specified config
-	fileContentLines := strings.Split(string(fileContents), "\n")
-	newFileContents := make([]string, len(fileContentLines))
-	
-	for currIndex, currLine := range fileContentLines {
-		
-		if strings.Contains(currLine, hostSearch) {
-			// We found the specified hostname in the original file
-			foundHost = true
-		} 
-
-		if foundHost == true && finishDelete == false {
-			// Once we find the matching host, we omit it from the copy
-			numbLinesRemoved = numbLinesRemoved + 1
-			if currLine == "" || currIndex + 1 >= len(fileContentLines) {
-				// We reached the end of the config we wanted to remove and resume copying
-				finishDelete = true
-			}
-		} else {
-			// We copy the original file to the new file array
-			newFileContents[newFileIndex] = currLine
-			newFileIndex = newFileIndex + 1
-		}
-	}
-
-	if foundHost == false {
-		fmt.Println("Cannot find specified hostname in config. Typo maybe?")
-		os.Exit(-1)
-	}
-
-	// We take a slice of the new array (since we are removing X lines from the file)
-	// and return it
-	newFileArray := strings.Join(newFileContents, "\n")
-	return newFileArray[:len(newFileArray) - numbLinesRemoved]
-}
-
-// Comments/Uncomments a specific host config depending if it was already commented or not
-// Return the updated file contents and if it did comment it out
-func commentHostConfig(hostname string, fileContents []byte) (string, bool) {
-	if len(hostname) <= 0 {
-		fmt.Println("Source flag is empty! Please pass in a valid hostname to remove!")
-		os.Exit(-1)
-	}
-	
-	foundHost := false		// Has the method found the matching hostname
-	hasCommented := false	// Did we comment out the config?
-
-	hostSearch := fmt.Sprintf("Host %s", hostname)
-	fileContentLines := strings.Split(string(fileContents), "\n")
-	
-	for currIndex, currLine := range fileContentLines {
-		
-		if foundHost == false {
-			if strings.Contains(currLine, hostSearch) {
-				// We found the specified hostname in the original file
-				foundHost = true
-			} 
-		} 
-		
-		if foundHost == true {
-			if currLine == "" || currIndex + 1 >= len(fileContentLines) {
-				// We reached the end of the modding and break out of the loop
-				break
-			} else if !strings.Contains(currLine, sshmkr_reader.COMMENT_IND) {
-				// Once we find the matching host, we omit/readd it in the config
-				fileContentLines[currIndex] = fmt.Sprintf("%s%s", sshmkr_reader.COMMENT_IND, currLine)
-				hasCommented = true
-			} else {
-				fileContentLines[currIndex] = currLine[len(sshmkr_reader.COMMENT_IND):]
-			}	
-		}		
-	}
-
-	if foundHost == false {
-		fmt.Println("Cannot find specified hostname in config. Typo maybe?")
-		os.Exit(-1)
-	}
-
-	return strings.Join(fileContentLines, "\n"), hasCommented
-}
-
-// Prints out a specific host configuration out to standard output
-func getSpecificHostConfig(hostname string, parsedConfig *ssh_config.Config) {
-	for _, host := range parsedConfig.Hosts {
-		if host.Patterns[0].String() == hostname {
-			// Once we found the desired host, we print it out in its entirety and leave the statement
-			fmt.Println("Host ", hostname)
-			for _, node := range host.Nodes {
-				output := node.String()
-
-				if sshmkr_reader.CheckIfValid(output) {
-					fmt.Println(output)
-				}
-			}
-			break
-		}
-	}
-}
-
 //// Global Variables
 
 // Flag Values
@@ -237,14 +80,14 @@ func main() {
 			headers := sshmkr_reader.ParseConfigHeaders(configFileContents)
 			mainHeader, subHeader := sshmkr_input.SelectNewConfigLoc(headers)
 			userAddedConfig := sshmkr_input.InterpolateUserInput(template)
-			newOutput := addTemplatedConfig(mainHeader, subHeader, userAddedConfig, configFileContents)
+			newOutput := sshmkr_commands.AddTemplatedConfig(mainHeader, subHeader, userAddedConfig, configFileContents)
 			sshmkr_reader.WriteToConfigFile(configFlagValue, newOutput)
 
 			fmt.Println("Sucessfully added new config to ssh_config!")
 		case "delete":
 			deleteCmd.Parse(os.Args[2:])
 
-			newOutput := removeHostConfig(*deleteSource, configFileContents)
+			newOutput := sshmkr_commands.RemoveHostConfig(*deleteSource, configFileContents)
 			sshmkr_reader.WriteToConfigFile(configFlagValue, newOutput)
 			
 			fmt.Println("Sucessfully removed config from ssh_config!")
@@ -255,18 +98,18 @@ func main() {
 			headers := sshmkr_reader.ParseConfigHeaders(configFileContents)
 			mainHeader, subHeader := sshmkr_input.SelectNewConfigLoc(headers)
 			userAddedConfig := sshmkr_input.InterpolateUserInput(template)
-			newOutput := addTemplatedConfig(mainHeader, subHeader, userAddedConfig, configFileContents)
+			newOutput := sshmkr_commands.AddTemplatedConfig(mainHeader, subHeader, userAddedConfig, configFileContents)
 			sshmkr_reader.WriteToConfigFile(configFlagValue, newOutput)			
 
 			fmt.Println("Sucessfuly copied one config to another config!")
 		case "show":
 			showCmd.Parse(os.Args[2:])
 
-			getSpecificHostConfig(*showSource, configFileDecoded)
+			sshmkr_commands.GetSpecificHostConfig(*showSource, configFileDecoded)
 		case "comment":
 			commentCmd.Parse(os.Args[2:])
 
-			newOutput, hasCommented := commentHostConfig(*commentSource, configFileContents)
+			newOutput, hasCommented := sshmkr_commands.CommentHostConfig(*commentSource, configFileContents)
 			sshmkr_reader.WriteToConfigFile(configFlagValue, newOutput)
 			
 			if hasCommented {
