@@ -143,3 +143,6 @@ packer_cache/
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Don't check in the binary!
+sshmkr
