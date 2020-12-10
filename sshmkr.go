@@ -8,46 +8,8 @@ import (
 	"strings"
 	"io/ioutil"
 	"github.com/kevinburke/ssh_config"
+	"sshmkr/templates"
 )
-
-///// Structs and methods specific to this program
-
-type headerBlock struct {
-	mainHeader string
-	subHeaders []string
-}
-
-// Data struct that holds information regarding templated values
-type configTemplate struct {
-	keyPairs []ssh_config.KV
-	formattedString string
-}
-
-// Returns a templated string that represents the config
-func (temp configTemplate) GetTemplatedString() string {
-	return temp.formattedString
-}
-
-// Returns a specific key pair from the template
-// Key = 0; Value (default) = 1
-func (temp configTemplate) GetKeyPair(index int) []string {
-	return strings.Fields(temp.keyPairs[index].String())
-}
-
-// Gets the number of key pairs that are in the template
-func (temp configTemplate) GetNumKeyPairs() int {
-	return len(temp.keyPairs)
-}
-
-// Gets the main header for that block
-func (header headerBlock) GetMainHeader() string {
-	return header.mainHeader
-}
-
-// Gets the sub headers for that block
-func (header headerBlock) GetSubHeaders() []string {
-	return header.subHeaders
-}
 
 //// Program Functions
 
@@ -218,8 +180,8 @@ func commentHostConfig(hostname string, fileContents []byte) (string, bool) {
 	return strings.Join(fileContentLines, "\n"), hasCommented
 }
 
-// Returns a configTemplate object that contains information on a given template
-func readSpecificTemplate(hostname string, config_template *ssh_config.Config) configTemplate {
+// Returns a ConfigTemplate object that contains information on a given template
+func readSpecificTemplate(hostname string, config_template *ssh_config.Config) sshmkr_templates.ConfigTemplate {
 	for _, host := range config_template.Hosts {
 		if  checkIfExistingHostname(hostname, host.Patterns[0].String()) {
 			currIndex := 0
@@ -246,14 +208,14 @@ func readSpecificTemplate(hostname string, config_template *ssh_config.Config) c
 			// We then create a struct object from the data we gathered and return it out
 			// Note that the length of the default values is always the same number as the
 			// numbrrt of special replacement chars
-			return configTemplate{keyPairs: template_kv[:currIndex], formattedString: formatted_template_string}
+			return sshmkr_templates.ConfigTemplate{KeyPairs: template_kv[:currIndex], FormattedString: formatted_template_string}
 		}
 	}
 
 	// Only comes here if the passed in template name does not match any existing ones
 	fmt.Println("Cannot find template specified! Typo maybe?")
 	os.Exit(-1)
-	return configTemplate{}
+	return sshmkr_templates.ConfigTemplate{}
 }
 
 // Prints out a specific host configuration out to standard output
@@ -275,7 +237,7 @@ func getSpecificHostConfig(hostname string, parsedConfig *ssh_config.Config) {
 }
 
 // Takes in a templated string and user input to return a filled host config
-func interpolateUserInput(template configTemplate) string {
+func interpolateUserInput(template sshmkr_templates.ConfigTemplate) string {
 	templateString := template.GetTemplatedString()
 	for currIndex := 0; currIndex < template.GetNumKeyPairs(); currIndex = currIndex + 1 {
 		kvPair := template.GetKeyPair(currIndex)
@@ -295,10 +257,10 @@ func interpolateUserInput(template configTemplate) string {
 
 // Takes in a parsed ssh config and outputs all of the relevant header comments
 // Returns an array of headerBlocks, which are logical groupings of ssh configs
-func parseConfigHeaders(fileContents []byte) []headerBlock {
+func parseConfigHeaders(fileContents []byte) []sshmkr_templates.HeaderBlock {
 	fileContentsArray := strings.Split(string(fileContents), "\n")
 	
-	headerBlocks := make([]headerBlock, len(fileContentsArray))
+	headerBlocks := make([]sshmkr_templates.HeaderBlock, len(fileContentsArray))
 	headerBlocksSize := 0
 
 	newHeaderBlock := ""
@@ -308,10 +270,10 @@ func parseConfigHeaders(fileContents []byte) []headerBlock {
 	for currIndex, currLine := range fileContentsArray {
 		
 		if currIndex + 1 == len(fileContentsArray) {
-			// Once we reached the end of the file, we parse out the last remaining headerBlock
+			// Once we reached the end of the file, we parse out the last remaining HeaderBlock
 			newSubHeadersBlock = strings.TrimRight(newSubHeadersBlock, "\n")
 			splitHeaders := strings.Split(newSubHeadersBlock, "\n")
-			headerBlocks[headerBlocksSize] = headerBlock{mainHeader: newHeaderBlock, subHeaders: splitHeaders}
+			headerBlocks[headerBlocksSize] = sshmkr_templates.HeaderBlock{MainHeader: newHeaderBlock, SubHeaders: splitHeaders}
 			headerBlocksSize = headerBlocksSize + 1
 		} else {
 			commentStartIndex := strings.Index(currLine, " ")
@@ -321,22 +283,22 @@ func parseConfigHeaders(fileContents []byte) []headerBlock {
 
 				if parsedLine == MAIN_HEADER_IND {
 					if lastHeader == SUB_HEADER_IND {
-						// If we reach a new header block, we save the headerBlock that we made
+						// If we reach a new header block, we save the HeaderBlock that we made
 						// to the array and start making a new one
 						newSubHeadersBlock = strings.TrimRight(newSubHeadersBlock, "\n")
 						splitHeaders := strings.Split(newSubHeadersBlock, "\n")
-						headerBlocks[headerBlocksSize] = headerBlock{mainHeader: newHeaderBlock, subHeaders: splitHeaders}
+						headerBlocks[headerBlocksSize] = sshmkr_templates.HeaderBlock{MainHeader: newHeaderBlock, SubHeaders: splitHeaders}
 						headerBlocksSize = headerBlocksSize + 1
 					}
 					
-					// We encounted a main header, making it the start of a new headerBlock obj
+					// We encounted a main header, making it the start of a new HeaderBlock obj
 					newHeaderBlock = currLine
 					newSubHeadersBlock = ""
 					lastHeader = parsedLine
 					
 				} else if parsedLine == SUB_HEADER_IND && newHeaderBlock != "" {
-					// We are adding more to the current headerBlock that we are making
-					// As long as we are in a new headerBlock
+					// We are adding more to the current HeaderBlock that we are making
+					// As long as we are in a new HeaderBlock
 					newSubHeadersBlock = newSubHeadersBlock + currLine + "\n"
 					lastHeader = parsedLine
 				}
@@ -350,7 +312,7 @@ func parseConfigHeaders(fileContents []byte) []headerBlock {
 
 // Outputs all of the headers that the player can select and asks them to select a main/sub
 // Returns the headers that the player selected
-func selectNewConfigLoc(headers []headerBlock) (string, string) {
+func selectNewConfigLoc(headers []sshmkr_templates.HeaderBlock) (string, string) {
 	var mainHeaderIndex int
 	var subHeaderIndex int
 
