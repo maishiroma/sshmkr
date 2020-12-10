@@ -235,8 +235,8 @@ func main() {
 
 			template := sshmkr_reader.ReadSpecificTemplate(*addSource, configTemplateFileDecoded)
 			headers := sshmkr_reader.ParseConfigHeaders(configFileContents)
-			mainHeader, subHeader := selectNewConfigLoc(headers)
-			userAddedConfig := interpolateUserInput(template)
+			mainHeader, subHeader := sshmkr_input.SelectNewConfigLoc(headers)
+			userAddedConfig := sshmkr_input.InterpolateUserInput(template)
 			newOutput := addTemplatedConfig(mainHeader, subHeader, userAddedConfig, configFileContents)
 			sshmkr_reader.WriteToConfigFile(configFlagValue, newOutput)
 
@@ -253,8 +253,8 @@ func main() {
 
 			template := sshmkr_reader.ReadSpecificTemplate(*copySource, configFileDecoded)
 			headers := sshmkr_reader.ParseConfigHeaders(configFileContents)
-			mainHeader, subHeader := selectNewConfigLoc(headers)
-			userAddedConfig := interpolateUserInput(template)
+			mainHeader, subHeader := sshmkr_input.SelectNewConfigLoc(headers)
+			userAddedConfig := sshmkr_input.InterpolateUserInput(template)
 			newOutput := addTemplatedConfig(mainHeader, subHeader, userAddedConfig, configFileContents)
 			sshmkr_reader.WriteToConfigFile(configFlagValue, newOutput)			
 
