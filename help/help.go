@@ -159,6 +159,6 @@ Global Flags:
 
 // Prints out the version of the script
 func PrintVersion() {
-	fmt.Println("sshmkr v0.1.0")
+	fmt.Println("sshmkr v1.0.0")
 	os.Exit(0)
 }
