@@ -29,7 +29,7 @@ func RemoveHostConfig(hostname string, fileContents []byte) string {
 	
 	for currIndex, currLine := range fileContentLines {
 		
-		if strings.Contains(currLine, hostSearch) {
+		if currLine == hostSearch {
 			// We found the specified hostname in the original file
 			foundHost = true
 		} 
@@ -49,7 +49,7 @@ func RemoveHostConfig(hostname string, fileContents []byte) string {
 	}
 
 	if foundHost == false {
-		fmt.Println("Cannot find specified hostname in config. Typo maybe?")
+		fmt.Println("Cannot find host", hostname, "in config. Typo maybe?")
 		os.Exit(-1)
 	}
 

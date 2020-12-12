@@ -11,8 +11,8 @@ func AddTemplatedConfig(mainHeader string, subHeader string, templateString stri
 	/*
 	*	The logic behind this is that we are adding in new config based on a passed template.
 	* 	The user will pass in three flags  (two being config headers) and the name of the template used.
-	*	The user will be prompted to enter in new values into the hostname (or can hit enter to use the )
-	*	default). Once done, the new config will be put into the config file.
+	*	The user will be prompted to enter in new values into the hostname (or can hit enter
+	*	to use the default). Once done, the new config will be put into the config file.
 	*
 	*/
 	
@@ -21,13 +21,8 @@ func AddTemplatedConfig(mainHeader string, subHeader string, templateString stri
 	fileContentsArray := strings.Split(string(fileContents), "\n")
 	
 	for currIndex, currLine := range fileContentsArray {
-		if (currLine == mainHeader) {
-			foundHeader = true
-		} else if (foundHeader == true && currLine == subHeader) {
-			foundSubHeader = true
-		}
-
 		if foundHeader == true && foundSubHeader == true {
+			// We will add the new config once we run into another header type
 			if strings.Contains(currLine, sshmkr_reader.SUB_HEADER_IND) {
 				// This means the previous line is the line that we are interested in replacing
 				fileContentsArray[currIndex-1] = templateString
@@ -37,7 +32,11 @@ func AddTemplatedConfig(mainHeader string, subHeader string, templateString stri
 				fileContentsArray[currIndex] = templateString
 				break
 			}
-		} 
+		} else if currLine == mainHeader {
+			foundHeader = true
+		} else if foundHeader == true && currLine == subHeader {
+			foundSubHeader = true
+		}
 	}
 
 	newContents := strings.Join(fileContentsArray, "\n")

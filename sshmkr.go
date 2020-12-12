@@ -79,29 +79,29 @@ func main() {
 			template := sshmkr_reader.ReadSpecificTemplate(*addSource, configTemplateFileDecoded)
 			headers := sshmkr_reader.ParseConfigHeaders(configFileContents)
 			mainHeader, subHeader := sshmkr_input.SelectNewConfigLoc(headers)
-			userAddedConfig := sshmkr_input.InterpolateUserInput(template)
+			userAddedConfig, hostName := sshmkr_input.InterpolateUserInput(template)
 			newOutput := sshmkr_commands.AddTemplatedConfig(mainHeader, subHeader, userAddedConfig, configFileContents)
 			sshmkr_reader.WriteToConfigFile(configFlagValue, newOutput)
 
-			fmt.Println("Sucessfully added new config to ssh_config!")
+			fmt.Println("Sucessfully added host", hostName , "to config!")
 		case "delete":
 			deleteCmd.Parse(os.Args[2:])
 
 			newOutput := sshmkr_commands.RemoveHostConfig(*deleteSource, configFileContents)
 			sshmkr_reader.WriteToConfigFile(configFlagValue, newOutput)
 			
-			fmt.Println("Sucessfully removed config from ssh_config!")
+			fmt.Println("Sucessfully removed host", *deleteSource ,"from ssh_config!")
 		case "copy":
 			copyCmd.Parse(os.Args[2:])
 
 			template := sshmkr_reader.ReadSpecificTemplate(*copySource, configFileDecoded)
 			headers := sshmkr_reader.ParseConfigHeaders(configFileContents)
 			mainHeader, subHeader := sshmkr_input.SelectNewConfigLoc(headers)
-			userAddedConfig := sshmkr_input.InterpolateUserInput(template)
+			userAddedConfig, hostName := sshmkr_input.InterpolateUserInput(template)
 			newOutput := sshmkr_commands.AddTemplatedConfig(mainHeader, subHeader, userAddedConfig, configFileContents)
 			sshmkr_reader.WriteToConfigFile(configFlagValue, newOutput)			
 
-			fmt.Println("Sucessfuly copied one config to another config!")
+			fmt.Println("Sucessfuly created new host", hostName, "from template!")
 		case "show":
 			showCmd.Parse(os.Args[2:])
 
@@ -113,9 +113,9 @@ func main() {
 			sshmkr_reader.WriteToConfigFile(configFlagValue, newOutput)
 			
 			if hasCommented {
-				fmt.Println("Sucessfully commented out config!")
+				fmt.Println("Sucessfully commented out host", *commentSource, "!")
 			} else {
-				fmt.Println("Sucessfully uncommented out config!")
+				fmt.Println("Sucessfully uncommented out host", *commentSource, "!")
 			}
 		default:
 			if helpFlagValue == true {

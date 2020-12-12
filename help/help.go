@@ -16,10 +16,13 @@ Adds in a new SSH configuration to the ssh_config file.
 
 This subcommand starts up an interactive add to the ssh_config file.
 The format of the new addition is based of on what is stored in
-~/.ssh/config_templates (the default location). One can also omit that template flag to use the first template structure in that config.
+~/.ssh/config_templates (the default location). One can also omit that
+template flag to use the first template structure in that config.
 
 This command also allows for the config to be placed in specific areas of the config, which depend on specific headers. 
-These will be pre-determined during runtime and the user will be free to select them,
+These will be pre-determined during runtime and the user will be free to select them.
+
+This command will ignore templates that are commented out.
 
 Example:
   sshmkr add -source nameOfTemplate
@@ -58,7 +61,8 @@ This command is useful to duplicate SSH configs that are similar to one
 another aside from one or two fields. In the new SSH config, it can even
 use the same fields as the original one if needed.
 
-This command, like add, also allows one to specify where to place said config in the SSH config file, which is based off on headers.
+This command, like add, also allows one to specify where to place said 
+config in the SSH config file, which is based off on headers.
 
 Example:
   sshmkr copy -source nameOfOriginalHost
@@ -78,8 +82,7 @@ Shows a given SSH config to the screen.
 This command outputs the current configuration of a specific SSH host to the screen. 
 This is formatted as it appears in the config file as well as to stdout, making it easy to chain into other CLI commands.
 
-Note that if the specified host is commented out, this will
-ignore said hostname.
+Note that if the specified host is commented out, this will ignore said hostname.
 
 Example:
   sshmkr show -source nameOfHost

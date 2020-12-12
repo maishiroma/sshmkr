@@ -105,25 +105,32 @@ func ReadSpecificTemplate(hostname string, config_template *ssh_config.Config) s
 		if  CheckIfExistingHostname(hostname, host.Patterns[0].String()) {
 			currIndex := 0
 			formatted_template_string := "\nHost %s\n"
-			template_kv := make([]ssh_config.KV, len(host.Nodes))
+
+			// Because we are manually adding the host value in, we need to account for that
+			// in the total length of the template
+			lenOfTemplate := len(host.Nodes) + 1
+			template_kv := make([]ssh_config.KV, lenOfTemplate)
 			
 			template_kv[currIndex] = ssh_config.KV{Key: "Host", Value: "NewHost", Comment: ""}
 			currIndex = currIndex + 1
 			for _, node := range host.Nodes {
-				nodeRendered := node.String()
+				nodeRendered := strings.TrimLeft(node.String(), " ")
 				
-				if CheckIfValid(nodeRendered) {
-					// Key Index = 0; Value Index = 1
-					kvPair := strings.Fields(nodeRendered)
-					formatted_template_string = formatted_template_string + "\t" + kvPair[0] + " %s \n"
-
+				if CheckIfValid(nodeRendered) && currIndex < lenOfTemplate {
+					// In order to parse the node's key and value, we use indexing
+					// Knowing that we are using the first space as the division, we use that as the point of index
+					nodeDivider := strings.Index(nodeRendered, " ")
+					nodeKey := nodeRendered[0:nodeDivider]
+					nodeValue := nodeRendered[nodeDivider+1:]
+					
+					formatted_template_string = formatted_template_string + "\t" + nodeKey + " %s \n"
+					
 					// The order of the interpolation in the format template string also correlates
 					// to the order of the values in the array
-					template_kv[currIndex] = ssh_config.KV{Key: kvPair[0], Value: kvPair[1], Comment: ""}
+					template_kv[currIndex] = ssh_config.KV{Key: nodeKey, Value: nodeValue, Comment: ""}
 					currIndex = currIndex + 1
 				}
 			}
-
 			// We then create a struct object from the data we gathered and return it out
 			// Note that the length of the default values is always the same number as the
 			// numbrrt of special replacement chars
@@ -132,8 +139,10 @@ func ReadSpecificTemplate(hostname string, config_template *ssh_config.Config) s
 	}
 
 	// Only comes here if the passed in template name does not match any existing ones
-	fmt.Println("Cannot find template specified! Typo maybe?")
+	fmt.Println("Cannot find template", hostname, "in config_templates file! Typo maybe?")
 	os.Exit(-1)
+
+	// Even though it will never reach here, we have to put a return value here
 	return sshmkr_templates.ConfigTemplate{}
 }
 
@@ -153,9 +162,12 @@ func CheckIfExistingHostname(checkHostname string, verifiedHostname string) bool
 		// Specifically, this is the default value for all hosts?
 		return false
 	} else if verifiedHostname == checkHostname {
+		fmt.Println("Found host config to use for template,", checkHostname, "...")
+		fmt.Println("")
 		return true
 	} else if len(checkHostname) <= 0 {
 		fmt.Println("No hostname passed in, defaulting to first template...")
+		fmt.Println("")
 		return true
 	} else {
 		return false
