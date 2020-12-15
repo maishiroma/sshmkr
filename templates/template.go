@@ -1,7 +1,6 @@
 package sshmkr_templates
 
 import (
-	"strings"
 	"github.com/kevinburke/ssh_config"
 )
 
@@ -24,8 +23,8 @@ func (temp ConfigTemplate) GetTemplatedString() string {
 
 // Returns a specific key pair from the template
 // Key = 0; Value (default) = 1
-func (temp ConfigTemplate) GetKeyPair(index int) []string {
-	return strings.Fields(temp.KeyPairs[index].String())
+func (temp ConfigTemplate) GetKeyPair(index int) ssh_config.KV {
+	return temp.KeyPairs[index]	
 }
 
 // Gets the number of key pairs that are in the template

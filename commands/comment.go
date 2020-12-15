@@ -11,7 +11,7 @@ import (
 // Return the updated file contents and if it did comment it out
 func CommentHostConfig(hostname string, fileContents []byte) (string, bool) {
 	if len(hostname) <= 0 {
-		fmt.Println("Source flag is empty! Please pass in a valid hostname to remove!")
+		fmt.Println("Source flag is empty! Please pass in a valid hostname to comment in/out!")
 		os.Exit(-1)
 	}
 	
@@ -45,7 +45,7 @@ func CommentHostConfig(hostname string, fileContents []byte) (string, bool) {
 	}
 
 	if foundHost == false {
-		fmt.Println("Cannot find specified hostname in config. Typo maybe?")
+		fmt.Println("Cannot find host", hostname, "in config. Typo maybe?")
 		os.Exit(-1)
 	}
 
