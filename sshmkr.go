@@ -66,6 +66,10 @@ func main() {
 	commentSource := commentCmd.String("source", "", "Name of host config to interact")
 	sshmkr_help.SetHelpContext(commentCmd, "comment")
 
+	editCmd := flag.NewFlagSet("edit", flag.ExitOnError)
+	editSource := editCmd.String("source", "", "Name of host config to edit")
+	sshmkr_help.SetHelpContext(editCmd, "edit")
+
 	if len(os.Args) < 2 {
 		fmt.Println("Error! Expecting another argument: [add, delete, copy, show, list]")
 		os.Exit(1)
@@ -117,6 +121,20 @@ func main() {
 			} else {
 				fmt.Println("Sucessfully uncommented out host", *commentSource, "!")
 			}
+		case "edit":
+			editCmd.Parse(os.Args[2:])
+
+			template := sshmkr_reader.ReadSpecificTemplate(*editSource, configFileDecoded)
+			editedConfig, newHostName := sshmkr_input.InterpolateUserInput(template)			
+			newOutput := sshmkr_commands.EditExisingConfig(*editSource, editedConfig, configFileContents)
+			sshmkr_reader.WriteToConfigFile(configFlagValue, newOutput)
+
+			if newHostName != *editSource {
+				fmt.Println("Sucesfully edited and renamed host config,", *editSource, ",to", newHostName, "!")
+			} else {
+				fmt.Println("Sucesfully edited host config,", *editSource, "!")
+			}
+
 		default:
 			if helpFlagValue == true {
 				sshmkr_help.DefaultHelp()

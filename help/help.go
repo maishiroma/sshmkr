@@ -116,7 +116,28 @@ Global Flags:
 	-help: 		Displays the help page for a specific command (or generally)
 	-version:	Prints out the current version of the application
 	-path:		Changes the default path to look for the ssh_config (default: ~/.ssh/config)
-`				
+`
+			case "edit":
+				helpText = `
+Edit one or more of the parameters of an existing SSH config.
+
+When editing an SSH config, the original values will be the default values when prompted,
+at which one can either accept them or type in a new value.
+
+Like the other commands, if the host config is commeted out, this command will ignore said
+hostname in its search.
+
+Example:
+  sshmkr edit -source nameOfHost
+
+Command Flags:
+	-source:  The host to comment in/out
+
+Global Flags:
+	-help: 		Displays the help page for a specific command (or generally)
+	-version:	Prints out the current version of the application
+	-path:		Changes the default path to look for the ssh_config (default: ~/.ssh/config)
+`
 		}
 		fmt.Println(helpText)
 		os.Exit(0)
@@ -147,6 +168,7 @@ Commands:
 	comment:	(Un)comments a specified host config from the ssh_config
 	copy:		Copies an existing host config and uses it as a template for a new config
 	show:		Displays a specified host config
+	edit:		Edits an existing SSH config
 
 Global Flags:
 	-help: 		Displays the help page for a specific command (or generally)

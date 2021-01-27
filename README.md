@@ -231,6 +231,32 @@ Host  NewHost
  ProxyCommand ssh -F ~/.ssh/config -W %h:%p personal_jb
 ```
 
+### Edit
+This command allows for an in-line edit on a given ssh host. This is useful if one needs to alter a specific item in a config without having to manually create a brand new config for the same host.
+
+Example:
+```
+$ sshmkr edit --source NewHost
+Found host config to use for template, NewHost ...
+
+
+~ Template ~
+Enter a value for Host [ default: NewHost ]: EditedHost
+Enter a value for Hostname [ default: myhost  ]: anotherOne
+Enter a value for Port [ default: 22  ]:
+Enter a value for IdentityFile [ default: ~/.ssh/id_rsa  ]:
+Enter a value for ProxyCommand [ default: ssh -F ~/.ssh/config -W %h:%p personal_jb  ]:
+
+Sucesfully edited host config, NewHost !
+
+$ sshmkr show --source EditedHost
+Host  EditedHost
+ Hostname anotherOne
+ Port 22
+ IdentityFile ~/.ssh/id_rsa
+ ProxyCommand ssh -F ~/.ssh/config -W %h:%p personal_jb
+```
+
 ## Contribute
 This project is free to be leveraged by whoever else finds this helpful. If one wants to request for more features and/or issues, feel free to open up new issues/forks on this repository! Just make sure to ping me in them so that I can take a look at your inquiry. 
 
