@@ -111,7 +111,7 @@ func ReadSpecificTemplate(hostname string, config_template *ssh_config.Config) s
 			lenOfTemplate := len(host.Nodes) + 1
 			template_kv := make([]ssh_config.KV, lenOfTemplate)
 			
-			template_kv[currIndex] = ssh_config.KV{Key: "Host", Value: "NewHost", Comment: ""}
+			template_kv[currIndex] = ssh_config.KV{Key: "Host", Value: hostname, Comment: ""}
 			currIndex = currIndex + 1
 			for _, node := range host.Nodes {
 				nodeRendered := strings.TrimLeft(node.String(), " ")

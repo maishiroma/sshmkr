@@ -13,7 +13,7 @@ Sounds like you? Let me introduce you to this new tool, `sshmkr`! This is a ligh
 
 ## How to Install
 There are two ways of installing this binary onto your system:
-1. Refer to the latest releases in the release panel (as of now, the latest one is v[1.0.0](https://github.com/maishiroma/sshmkr/releases/tag/1.0.0))
+1. Refer to the latest releases in the release panel (as of now, the latest one is v[1.1.0](https://github.com/maishiroma/sshmkr/releases/tag/1.1.0))
 2. Clone the repository and build/install the binary yourself with `go build .`.
 
 Once you have the binary, simply place it in your `$PATH` and refer to it via `sshmkr`. To test if it is working, enter:
@@ -226,6 +226,32 @@ Example:
 $ sshmkr show --source NewHost
 Host  NewHost
  Hostname myhost
+ Port 22
+ IdentityFile ~/.ssh/id_rsa
+ ProxyCommand ssh -F ~/.ssh/config -W %h:%p personal_jb
+```
+
+### Edit
+This command allows for an in-line edit on a given ssh host. This is useful if one needs to alter a specific item in a config without having to manually create a brand new config for the same host.
+
+Example:
+```
+$ sshmkr edit --source NewHost
+Found host config to use for template, NewHost ...
+
+
+~ Template ~
+Enter a value for Host [ default: NewHost ]: EditedHost
+Enter a value for Hostname [ default: myhost  ]: anotherOne
+Enter a value for Port [ default: 22  ]:
+Enter a value for IdentityFile [ default: ~/.ssh/id_rsa  ]:
+Enter a value for ProxyCommand [ default: ssh -F ~/.ssh/config -W %h:%p personal_jb  ]:
+
+Sucesfully edited host config, NewHost !
+
+$ sshmkr show --source EditedHost
+Host  EditedHost
+ Hostname anotherOne
  Port 22
  IdentityFile ~/.ssh/id_rsa
  ProxyCommand ssh -F ~/.ssh/config -W %h:%p personal_jb
