@@ -13,7 +13,7 @@ Sounds like you? Let me introduce you to this new tool, `sshmkr`! This is a ligh
 
 ## How to Install
 There are two ways of installing this binary onto your system:
-1. Refer to the latest releases in the release panel (as of now, the latest one is v[1.0.0](https://github.com/maishiroma/sshmkr/releases/tag/1.0.0))
+1. Refer to the latest releases in the release panel (as of now, the latest one is v[1.1.0](https://github.com/maishiroma/sshmkr/releases/tag/1.1.0))
 2. Clone the repository and build/install the binary yourself with `go build .`.
 
 Once you have the binary, simply place it in your `$PATH` and refer to it via `sshmkr`. To test if it is working, enter:
